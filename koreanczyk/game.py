@@ -1,4 +1,5 @@
 import copy
+from importlib import import_module
 from random import seed, randint
 from sys import argv
 
@@ -28,8 +29,8 @@ def message(kind, msg):
 
 def create_players(player1, player2):
     """Import players, call `name` method and return array of players."""
-    players = [__import__(player1).Player(),
-               __import__(player2).Player()]
+    players = [import_module(player1).Player(),
+               import_module(player2).Player()]
 
     for p in range(len(players)):
         players[p].name(p)
