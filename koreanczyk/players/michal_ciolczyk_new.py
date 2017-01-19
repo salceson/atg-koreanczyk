@@ -3,7 +3,7 @@ import random
 from koreanczyk.utils.commands import Move
 from koreanczyk.utils.helpers import forward, backward, turn_left
 
-_MY_DEFAULT_PATICKS = ['OO', 'XX']
+_MY_DEFAULT_PATICKS = ['OO']
 _OPPONENT_DEFAULT_PATICKS = ['XO']
 _OPPONENT_THROW_FOR_RESULT = {
     'do': {
