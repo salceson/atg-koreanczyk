@@ -3,6 +3,7 @@ import random
 from koreanczyk.utils.commands import Move
 from koreanczyk.utils.helpers import forward, backward, turn_left
 
+_MOVES = ['XX', 'XO', 'OO']
 _MY_DEFAULT_PATICKS = ['OO']
 _OPPONENT_DEFAULT_PATICKS = ['XO']
 _OPPONENT_THROW_FOR_RESULT = {
@@ -47,6 +48,10 @@ class Player(object):
         self.opponents_moves = {0: 'XX', 1: 'XO'}
         self.my_paticks = 'OO'
         self.my_moves = {0: 'XO', 1: 'OO'}
+        self.previous_idx = 0
+        self.statistics = {move: 0 for move in _MOVES}
+        self.playing_random = False
+        self.paticks_count = 0
 
     def name(self, i):
         self.i = i
@@ -55,20 +60,37 @@ class Player(object):
         self.opponents_moves[i] = 'XO'
         self.opponents_moves[1 - i] = 'OO'
         self.consecutive_rethrows = 0
+        self.previous_idx = 0
 
     def board(self, i, player_structs):
         self.my_state = player_structs[self.i]
 
     def paticks(self, i):
         """Output format, e.g.: ['X', 'O']"""
-        self.my_paticks = random.choice(self.my_moves[i])
+        self.paticks_count += 1
+        if self.playing_random:
+            if self.i == i:
+                self.my_paticks = 'OO'
+            else:
+                self.my_paticks = 'XO'
+        elif self.i == i:
+            self.previous_idx = (self.previous_idx + 1) % len(self.my_moves[self.i])
+            self.my_paticks = self.my_moves[self.i][self.previous_idx]
+        else:
+            self.my_paticks = random.choice(self.my_moves[i])
         return [self.my_paticks[0], self.my_paticks[1]]
 
     def throw_result(self, i, s):
         opponent_throw = _OPPONENT_THROW_FOR_RESULT[s][self.my_paticks]
         self.opponents_moves[i] = opponent_throw
+        self.statistics[opponent_throw] += 1
+        if sum(self.statistics.values()) > 5:
+            vec = {move: int(sum(self.statistics.values()) / 3.0) for move in _MOVES}
+            delta = sum([abs(vec[move] - self.statistics[move]) for move in _MOVES])
+            self.playing_random = delta < 4 + int(self.paticks_count / 300.0)
         best_responses = _BEST_RESPONSES_MY if self.i == i else _BEST_RESPONSES_OPPONENT
         self.my_moves[i] = best_responses[opponent_throw]
+        self.previous_idx = min(self.previous_idx, len(self.my_moves[self.i]) - 1)
         is_rethrow = s in ['yut', 'mo']
         self.consecutive_rethrows = self.consecutive_rethrows + 1 if is_rethrow else 0
         if self.consecutive_rethrows > 1000 and self.i == i and is_rethrow:
@@ -84,7 +106,9 @@ class Player(object):
             output = []
             for move in sorted(moves_list, reverse=True):
                 if move == -1:
-                    choice_group = self._min_counter_group()
+                    choice_group = self._possible_to_turn_group(move)
+                    if not choice_group:
+                        choice_group = self._min_counter_group()
                     self.my_state.state[choice_group] = backward(self.my_state.state[choice_group])
                     output.append(Move(choice_group, 'forward', move))
                 else:
