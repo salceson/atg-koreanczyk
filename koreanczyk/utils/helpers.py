@@ -118,7 +118,7 @@ def backward(current):
         return 100
     _list = get_moves_list(current)
     current_idx = _list.index(current)
-    if current_idx == 0:
+    if current_idx == 1:
         return 100
     else:
         return _list[current_idx - 1]

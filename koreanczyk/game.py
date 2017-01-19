@@ -76,11 +76,11 @@ def game(players):
             continue
 
         if actual_player == 0:
-            moves_from_player = players[0].moves(actual_player, results)
-            players[1].moves(actual_player, results)
+            moves_from_player = players[0].moves(actual_player, copy.deepcopy(results))
+            players[1].moves(actual_player, copy.deepcopy(results))
         else:
-            players[0].moves(actual_player, results)
-            moves_from_player = players[1].moves(actual_player, results)
+            players[0].moves(actual_player, copy.deepcopy(results))
+            moves_from_player = players[1].moves(actual_player, copy.deepcopy(results))
 
         are_valid_moves = validate_moves(moves_from_player, results, actual_player, player_structs)
         if not are_valid_moves:
@@ -144,7 +144,7 @@ def validate_moves(moves_from_player, results, actual_player, player_structs):
     moves = filter(lambda x: isinstance(x, Move), moves_from_player)  # get only Move commands
     # validating groups
     groups = map(lambda x: x.counter_group_id, moves)
-    valid_groups = player_structs[0].get_counter_groups()
+    valid_groups = player_structs[actual_player].get_counter_groups()
     validated_groups = all(g in valid_groups for g in groups)
 
     # validating moves
@@ -160,12 +160,13 @@ def validate_moves(moves_from_player, results, actual_player, player_structs):
             for i in range(len(merge.groups) - 1):
                 counter1 = merge.groups[i]
                 counter2 = merge.groups[i+1]
-                place1 = counters_new_position[counter1]
-                place2 = counters_new_position[counter2]
+                place1 = counters_new_position[actual_player].state[counter1]
+                place2 = counters_new_position[actual_player].state[counter2]
                 if not same_place(place1, place2):
                     return False
 
-    return True
+        return True
+    return False
 
 
 def _knock_counter_group(other_counter_group, player, player_structs):

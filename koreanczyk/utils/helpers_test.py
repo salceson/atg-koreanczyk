@@ -80,10 +80,10 @@ def test_backward():
         assert backward(s) == special_results[i]
 
     # 'ez' backward win
-    assert backward(0) == 100
-    assert backward(20) == 100
-    assert backward(40) == 100
-    assert backward(60) == 100
+    assert backward(1) == 100
+    assert backward(21) == 100
+    assert backward(41) == 100
+    assert backward(61) == 100
 
     ###
     current = 32
